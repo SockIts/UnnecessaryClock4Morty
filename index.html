@@ -169,9 +169,6 @@
   </div>
 
   <script>
-    // Google Apps Script Web App URL
-    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyiXPsTijKpRR8WwBztDND6h2vrksF31gN1vLQuKqhLqv9hXsOIt2zBVGsagPDoJBAA/exec';
-
     // Available timezones
     const timezones = [
       { id: 'Africa/Johannesburg', display: 'Morty (UTC+2)' },
@@ -241,7 +238,9 @@
     }
 
     // Event handling for calendar
-    async function addEvent() {
+    let events = JSON.parse(localStorage.getItem('events')) || [];
+
+    function addEvent() {
       const eventName = document.getElementById('event-name').value;
       const eventDate = document.getElementById('event-date').value;
       const eventTime = document.getElementById('event-time').value;
@@ -249,98 +248,29 @@
 
       if (eventName && eventDate && eventTime && eventTimezone) {
         const timezoneDisplay = timezones.find(tz => tz.id === eventTimezone).display;
-        const payload = {
-          name: eventName,
-          date: eventDate,
-          time: eventTime,
-          timezone: timezoneDisplay
-        };
-        console.log('Sending addEvent request:', { url: `${GOOGLE_SCRIPT_URL}?action=addEvent`, payload });
-        try {
-          const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=addEvent`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
-          console.log('Response status:', response.status);
-          if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Response error text:', errorText);
-            throw new Error(`HTTP error! Status: ${response.status}, Details: ${errorText}`);
-          }
-          const result = await response.json();
-          if (result.error) {
-            console.error('Server error:', result.error);
-            alert(`Failed to add event: ${result.error}`);
-          } else {
-            console.log('Event added successfully:', result);
-            document.getElementById('event-name').value = '';
-            document.getElementById('event-date').value = '';
-            document.getElementById('event-time').value = '';
-            updateEventList();
-          }
-        } catch (error) {
-          console.error('Error adding event:', error.message, error);
-          alert(`Failed to add event: ${error.message}. Check console for details.`);
-        }
+        events.push({ name: eventName, date: eventDate, time: eventTime, timezone: timezoneDisplay });
+        localStorage.setItem('events', JSON.stringify(events));
+        document.getElementById('event-name').value = '';
+        document.getElementById('event-date').value = '';
+        document.getElementById('event-time').value = '';
+        updateEventList();
       } else {
         alert('Please fill in all event fields.');
       }
     }
 
-    async function deleteEvent(id) {
-      console.log('Sending deleteEvent request:', { url: `${GOOGLE_SCRIPT_URL}?action=deleteEvent`, id });
-      try {
-        const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=deleteEvent`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id })
-        });
-        console.log('Response status:', response.status);
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('Response error text:', errorText);
-          throw new Error(`HTTP error! Status: ${response.status}, Details: ${errorText}`);
-        }
-        const result = await response.json();
-        if (result.error) {
-          console.error('Error deleting event:', result.error);
-          alert(`Failed to delete event: ${result.error}`);
-        } else {
-          console.log('Event deleted successfully:', result);
-          updateEventList();
-        }
-      } catch (error) {
-        console.error('Error deleting event:', error.message, error);
-        alert(`Failed to delete event: ${error.message}. Check console for details.`);
-      }
+    function deleteEvent(index) {
+      events.splice(index, 1);
+      localStorage.setItem('events', JSON.stringify(events));
+      updateEventList();
     }
 
-    async function updateEventList() {
-      console.log('Sending updateEventList request:', { url: `${GOOGLE_SCRIPT_URL}?action=getEvents` });
-      try {
-        const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getEvents`);
-        console.log('Response status:', response.status);
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('Response error text:', errorText);
-          throw new Error(`HTTP error! Status: ${response.status}, Details: ${errorText}`);
-        }
-        const events = await response.json();
-        if (events.error) {
-          console.error('Server error:', events.error);
-          throw new Error(events.error);
-        }
-        console.log('Events retrieved:', events);
-        const eventList = document.getElementById('event-list');
-        eventList.innerHTML = events.map(event => 
-          `<div>${event.name} - ${event.date} at ${event.time} (${event.timezone}) 
-             <button class="delete-button" onclick="deleteEvent('${event.id}')">X</button></div>`
-        ).join('');
-      } catch (error) {
-        console.error('Error fetching events:', error.message, error);
-        alert(`Failed to load events: ${error.message}. Check console for details.`);
-      }
+    function updateEventList() {
+      const eventList = document.getElementById('event-list');
+      eventList.innerHTML = events.map((event, index) => 
+        `<div>${event.name} - ${event.date} at ${event.time} (${event.timezone}) 
+           <button class="delete-button" onclick="deleteEvent(${index})">X</button></div>`
+      ).join('');
     }
 
     // Initialize event list on page load
