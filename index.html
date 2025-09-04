@@ -170,7 +170,7 @@
 
   <script>
     // Google Apps Script Web App URL
-    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzrVkgKWVr5nDqxY62v5If1vEDf10Ey2izpQ1o876IXftppj9ChsKiKWhftL6Yp8z4F/exec';
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyiXPsTijKpRR8WwBztDND6h2vrksF31gN1vLQuKqhLqv9hXsOIt2zBVGsagPDoJBAA/exec';
 
     // Available timezones
     const timezones = [
@@ -249,25 +249,31 @@
 
       if (eventName && eventDate && eventTime && eventTimezone) {
         const timezoneDisplay = timezones.find(tz => tz.id === eventTimezone).display;
+        const payload = {
+          name: eventName,
+          date: eventDate,
+          time: eventTime,
+          timezone: timezoneDisplay
+        };
+        console.log('Sending addEvent request:', { url: `${GOOGLE_SCRIPT_URL}?action=addEvent`, payload });
         try {
           const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=addEvent`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              name: eventName,
-              date: eventDate,
-              time: eventTime,
-              timezone: timezoneDisplay
-            })
+            body: JSON.stringify(payload)
           });
+          console.log('Response status:', response.status);
           if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+            const errorText = await response.text();
+            console.error('Response error text:', errorText);
+            throw new Error(`HTTP error! Status: ${response.status}, Details: ${errorText}`);
           }
           const result = await response.json();
           if (result.error) {
-            console.error('Error adding event:', result.error);
+            console.error('Server error:', result.error);
             alert(`Failed to add event: ${result.error}`);
           } else {
+            console.log('Event added successfully:', result);
             document.getElementById('event-name').value = '';
             document.getElementById('event-date').value = '';
             document.getElementById('event-time').value = '';
@@ -283,20 +289,25 @@
     }
 
     async function deleteEvent(id) {
+      console.log('Sending deleteEvent request:', { url: `${GOOGLE_SCRIPT_URL}?action=deleteEvent`, id });
       try {
         const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=deleteEvent`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id })
         });
+        console.log('Response status:', response.status);
         if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
+          const errorText = await response.text();
+          console.error('Response error text:', errorText);
+          throw new Error(`HTTP error! Status: ${response.status}, Details: ${errorText}`);
         }
         const result = await response.json();
         if (result.error) {
           console.error('Error deleting event:', result.error);
           alert(`Failed to delete event: ${result.error}`);
         } else {
+          console.log('Event deleted successfully:', result);
           updateEventList();
         }
       } catch (error) {
@@ -306,15 +317,21 @@
     }
 
     async function updateEventList() {
+      console.log('Sending updateEventList request:', { url: `${GOOGLE_SCRIPT_URL}?action=getEvents` });
       try {
         const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getEvents`);
+        console.log('Response status:', response.status);
         if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
+          const errorText = await response.text();
+          console.error('Response error text:', errorText);
+          throw new Error(`HTTP error! Status: ${response.status}, Details: ${errorText}`);
         }
         const events = await response.json();
         if (events.error) {
+          console.error('Server error:', events.error);
           throw new Error(events.error);
         }
+        console.log('Events retrieved:', events);
         const eventList = document.getElementById('event-list');
         eventList.innerHTML = events.map(event => 
           `<div>${event.name} - ${event.date} at ${event.time} (${event.timezone}) 
