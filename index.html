@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Time Converter</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f0f0f0;
+    }
+    .container {
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      width: 400px;
+    }
+    .time-box {
+      margin: 20px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .time-box .input-group {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      gap: 10px;
+    }
+    .time-box label {
+      font-size: 1.2em;
+      margin-bottom: 5px;
+    }
+    .time-box select, .time-box input[type="time"] {
+      padding: 5px;
+      font-size: 1em;
+      width: 180px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    .time-display {
+      font-size: 1.5em;
+      margin: 10px 0;
+      font-weight: bold;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+    }
+    .minutes-until {
+      font-size: 1.2em;
+      color: #333;
+    }
+    .header {
+      font-size: 2em;
+      font-weight: bold;
+      margin-bottom: 20px;
+      color: #333;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">Minutes Countdown for Morty</div>
+  <div class="container">
+    <div class="time-box">
+      <label for="current-time">Current Time:</label>
+      <div id="current-time" class="time-display"></div>
+    </div>
+    <div class="time-box">
+      <label for="target-timezone">Target Time:</label>
+      <div class="input-group">
+        <select id="target-timezone">
+          <option value="Africa/Johannesburg">Morty (UTC+2)</option>
+          <option value="America/La_Paz">Derp (UTC-4)</option>
+          <option value="Europe/Moscow">John (UTC+3)</option>
+          <option value="America/Chicago">AZ (Central)</option>
+          <option value="America/Denver">HP (Mountain)</option>
+          <option value="America/Los_Angeles" selected>Socks (PST)</option>
+        </select>
+        <input type="time" id="target-time-input" value="14:30">
+      </div>
+      <div id="target-time" class="time-display"></div>
+    </div>
+    <div id="minutes-until" class="minutes-until"></div>
+  </div>
+
+  <script>
+    // Available timezones
+    const timezones = [
+      { id: 'Africa/Johannesburg', display: 'Morty (UTC+2)' },
+      { id: 'America/La_Paz', display: 'Derp (UTC-4)' },
+      { id: 'Europe/Moscow', display: 'John (UTC+3)' },
+      { id: 'America/Chicago', display: 'AZ (Central)' },
+      { id: 'America/Denver', display: 'HP (Mountain)' },
+      { id: 'America/Los_Angeles', display: 'Socks (PST)' }
+    ];
+
+    // Function to format time in 12-hour format with AM/PM
+    function formatTime(date, timezone) {
+      return date.toLocaleTimeString('en-US', {
+        timeZone: timezone,
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+    }
+
+    // Function to calculate minutes until target time
+    function calculateMinutesUntil(currentDate, targetDate) {
+      const diffMs = targetDate - currentDate;
+      const diffMins = Math.round(diffMs / 60000);
+      return diffMins >= 0 ? diffMins : diffMins + 1440;
+    }
+
+    // Function to parse time input (HH:MM) to hours and minutes
+    function parseTimeInput(timeString) {
+      const [hours, minutes] = timeString.split(':').map(Number);
+      return { hours, minutes };
+    }
+
+    // Function to update the time displays
+    function updateTimes() {
+      const targetTimezone = document.getElementById('target-timezone').value;
+      const targetTimeInput = document.getElementById('target-time-input').value;
+
+      // Get current time for all timezones
+      const now = new Date();
+      const currentTimeDisplay = timezones.map(timezone => {
+        const time = formatTime(now, timezone.id);
+        return `<div>${timezone.display}: ${time}</div>`;
+      }).join('');
+      document.getElementById('current-time').textContent = '';
+      document.getElementById('current-time').innerHTML = currentTimeDisplay;
+
+      // Parse target time input
+      const { hours, minutes } = parseTimeInput(targetTimeInput);
+
+      // Set target time in selected timezone
+      const targetDate = new Date();
+      targetDate.setHours(hours, minutes, 0, 0);
+      const targetTime = formatTime(targetDate, targetTimezone);
+      document.getElementById('target-time').textContent = targetTime;
+
+      // Calculate minutes until target time
+      const currentDateInTargetZone = new Date().toLocaleString('en-US', { timeZone: targetTimezone });
+      const currentDate = new Date(currentDateInTargetZone);
+      const targetDateAdjusted = new Date(currentDate);
+      targetDateAdjusted.setHours(hours, minutes, 0, 0);
+      if (currentDate.getHours() > hours || (currentDate.getHours() === hours && currentDate.getMinutes() > minutes)) {
+        targetDateAdjusted.setDate(targetDateAdjusted.getDate() + 1);
+      }
+      const minutesUntil = calculateMinutesUntil(currentDate, targetDateAdjusted);
+      document.getElementById('minutes-until').textContent = `${minutesUntil} minutes until target time`;
+    }
+
+    // Update times initially and every second
+    updateTimes();
+    setInterval(updateTimes, 1000);
+
+    // Update times when timezone or target time changes
+    document.getElementById('target-timezone').addEventListener('change', updateTimes);
+    document.getElementById('target-time-input').addEventListener('change', updateTimes);
+  </script>
+</body>
+</html>
