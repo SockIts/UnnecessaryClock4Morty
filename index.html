@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Time Converter</title>
+  <title>Time Converter and Calendar</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -11,11 +11,18 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      min-height: 100vh;
       margin: 0;
       background-color: #f0f0f0;
     }
-    .container {
+    .main-container {
+      display: flex;
+      flex-direction: row;
+      gap: 20px;
+      justify-content: center;
+      align-items: flex-start;
+    }
+    .timer-container, .calendar-container {
       background-color: white;
       padding: 20px;
       border-radius: 8px;
@@ -40,7 +47,7 @@
       font-size: 1.2em;
       margin-bottom: 5px;
     }
-    .time-box select, .time-box input[type="time"] {
+    .time-box select, .time-box input[type="time"], .calendar-container input, .calendar-container select, .calendar-container button {
       padding: 5px;
       font-size: 1em;
       width: 180px;
@@ -68,34 +75,103 @@
       color: #333;
       text-align: center;
     }
+    .calendar-container .input-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .calendar-container button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    .calendar-container button:hover {
+      background-color: #45a049;
+    }
+    .event-list {
+      text-align: left;
+      margin-top: 20px;
+      font-size: 1em;
+    }
+    .event-list div {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 5px 0;
+    }
+    .delete-button {
+      background-color: #ff0000;
+      color: white;
+      border: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+    .delete-button:hover {
+      background-color: #cc0000;
+    }
   </style>
 </head>
 <body>
-  <div class="header">Minutes Countdown for Morty</div>
-  <div class="container">
-    <div class="time-box">
-      <label for="current-time">Current Time:</label>
-      <div id="current-time" class="time-display"></div>
-    </div>
-    <div class="time-box">
-      <label for="target-timezone">Target Time:</label>
-      <div class="input-group">
-        <select id="target-timezone">
-          <option value="Africa/Johannesburg">Morty (UTC+2)</option>
-          <option value="America/La_Paz">Derp (UTC-4)</option>
-          <option value="Europe/Moscow">John (UTC+3)</option>
-          <option value="America/Chicago">AZ (Central)</option>
-          <option value="America/Denver">HP (Mountain)</option>
-          <option value="America/Los_Angeles" selected>Socks (PST)</option>
-        </select>
-        <input type="time" id="target-time-input" value="14:30">
+  <div class="header">Minutes Countdown and Calendar for Morty</div>
+  <div class="main-container">
+    <div class="timer-container">
+      <div class="time-box">
+        <label for="current-time">Current Time:</label>
+        <div id="current-time" class="time-display"></div>
       </div>
-      <div id="target-time" class="time-display"></div>
+      <div class="time-box">
+        <label for="target-timezone">Target Time:</label>
+        <div class="input-group">
+          <select id="target-timezone">
+            <option value="Africa/Johannesburg">Morty (UTC+2)</option>
+            <option value="America/La_Paz">Derp (UTC-4)</option>
+            <option value="Europe/Moscow">John (UTC+3)</option>
+            <option value="America/Chicago">AZ (Central)</option>
+            <option value="America/Denver">HP (Mountain)</option>
+            <option value="America/Los_Angeles" selected>Socks (PST)</option>
+          </select>
+          <input type="time" id="target-time-input" value="14:30">
+        </div>
+        <div id="target-time" class="time-display"></div>
+      </div>
+      <div id="minutes-until" class="minutes-until"></div>
     </div>
-    <div id="minutes-until" class="minutes-until"></div>
+    <div class="calendar-container">
+      <div class="time-box">
+        <label for="calendar">Add Event:</label>
+        <div class="input-group">
+          <input type="text" id="event-name" placeholder="Event Name">
+          <input type="date" id="event-date">
+          <input type="time" id="event-time">
+          <select id="event-timezone">
+            <option value="Africa/Johannesburg">Morty (UTC+2)</option>
+            <option value="America/La_Paz">Derp (UTC-4)</option>
+            <option value="Europe/Moscow">John (UTC+3)</option>
+            <option value="America/Chicago">AZ (Central)</option>
+            <option value="America/Denver">HP (Mountain)</option>
+            <option value="America/Los_Angeles" selected>Socks (PST)</option>
+          </select>
+          <button id="submit-event">Add Event</button>
+        </div>
+        <div id="event-list" class="event-list"></div>
+      </div>
+    </div>
   </div>
 
   <script>
+    // Google Apps Script Web App URL
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzCtI2sGfJ-mA2_MVtICmBK43I-wd8ibqz77UL4gbzt86eCInIUh7ZTJ3LFAZXmGoXe/exec';
+
     // Available timezones
     const timezones = [
       { id: 'Africa/Johannesburg', display: 'Morty (UTC+2)' },
@@ -164,6 +240,89 @@
       document.getElementById('minutes-until').textContent = `${minutesUntil} minutes until target time`;
     }
 
+    // Event handling for calendar
+    async function addEvent() {
+      const eventName = document.getElementById('event-name').value;
+      const eventDate = document.getElementById('event-date').value;
+      const eventTime = document.getElementById('event-time').value;
+      const eventTimezone = document.getElementById('event-timezone').value;
+
+      if (eventName && eventDate && eventTime && eventTimezone) {
+        const timezoneDisplay = timezones.find(tz => tz.id === eventTimezone).display;
+        try {
+          const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=addEvent`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: eventName,
+              date: eventDate,
+              time: eventTime,
+              timezone: timezoneDisplay
+            })
+          });
+          const result = await response.json();
+          if (result.error) {
+            console.error('Error adding event:', result.error);
+            alert(`Failed to add event: ${result.error}`);
+          } else {
+            document.getElementById('event-name').value = '';
+            document.getElementById('event-date').value = '';
+            document.getElementById('event-time').value = '';
+            updateEventList();
+          }
+        } catch (error) {
+          console.error('Error adding event:', error.message);
+          alert(`Failed to add event: ${error.message}`);
+        }
+      } else {
+        alert('Please fill in all event fields.');
+      }
+    }
+
+    async function deleteEvent(id) {
+      try {
+        const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=deleteEvent`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id })
+        });
+        const result = await response.json();
+        if (result.error) {
+          console.error('Error deleting event:', result.error);
+          alert(`Failed to delete event: ${result.error}`);
+        } else {
+          updateEventList();
+        }
+      } catch (error) {
+        console.error('Error deleting event:', error.message);
+        alert(`Failed to delete event: ${error.message}`);
+      }
+    }
+
+    async function updateEventList() {
+      try {
+        const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getEvents`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const events = await response.json();
+        if (events.error) {
+          throw new Error(events.error);
+        }
+        const eventList = document.getElementById('event-list');
+        eventList.innerHTML = events.map(event => 
+          `<div>${event.name} - ${event.date} at ${event.time} (${event.timezone}) 
+             <button class="delete-button" onclick="deleteEvent('${event.id}')">X</button></div>`
+        ).join('');
+      } catch (error) {
+        console.error('Error fetching events:', error.message);
+        alert(`Failed to load events: ${error.message}. Please refresh the page.`);
+      }
+    }
+
+    // Initialize event list on page load
+    updateEventList();
+
     // Update times initially and every second
     updateTimes();
     setInterval(updateTimes, 1000);
@@ -171,6 +330,9 @@
     // Update times when timezone or target time changes
     document.getElementById('target-timezone').addEventListener('change', updateTimes);
     document.getElementById('target-time-input').addEventListener('change', updateTimes);
+
+    // Add event listener for event submission
+    document.getElementById('submit-event').addEventListener('click', addEvent);
   </script>
 </body>
 </html>
