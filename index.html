@@ -170,7 +170,7 @@
 
   <script>
     // Google Apps Script Web App URL
-    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzCtI2sGfJ-mA2_MVtICmBK43I-wd8ibqz77UL4gbzt86eCInIUh7ZTJ3LFAZXmGoXe/exec';
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzrVkgKWVr5nDqxY62v5If1vEDf10Ey2izpQ1o876IXftppj9ChsKiKWhftL6Yp8z4F/exec';
 
     // Available timezones
     const timezones = [
@@ -260,6 +260,9 @@
               timezone: timezoneDisplay
             })
           });
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
           const result = await response.json();
           if (result.error) {
             console.error('Error adding event:', result.error);
@@ -286,6 +289,9 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id })
         });
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
         const result = await response.json();
         if (result.error) {
           console.error('Error deleting event:', result.error);
