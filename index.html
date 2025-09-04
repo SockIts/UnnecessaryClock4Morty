@@ -271,8 +271,8 @@
             updateEventList();
           }
         } catch (error) {
-          console.error('Error adding event:', error.message);
-          alert(`Failed to add event: ${error.message}`);
+          console.error('Error adding event:', error.message, error);
+          alert(`Failed to add event: ${error.message}. Check console for details.`);
         }
       } else {
         alert('Please fill in all event fields.');
@@ -294,8 +294,8 @@
           updateEventList();
         }
       } catch (error) {
-        console.error('Error deleting event:', error.message);
-        alert(`Failed to delete event: ${error.message}`);
+        console.error('Error deleting event:', error.message, error);
+        alert(`Failed to delete event: ${error.message}. Check console for details.`);
       }
     }
 
@@ -315,8 +315,8 @@
              <button class="delete-button" onclick="deleteEvent('${event.id}')">X</button></div>`
         ).join('');
       } catch (error) {
-        console.error('Error fetching events:', error.message);
-        alert(`Failed to load events: ${error.message}. Please refresh the page.`);
+        console.error('Error fetching events:', error.message, error);
+        alert(`Failed to load events: ${error.message}. Check console for details.`);
       }
     }
 
