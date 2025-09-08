@@ -2,76 +2,92 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Time Converter and Calendar</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       display: flex;
       flex-direction: column;
-      justify-content: center;
       align-items: center;
       min-height: 100vh;
       margin: 0;
       background-color: #f0f0f0;
+      font-size: 16px;
+      -webkit-font-smoothing: antialiased;
     }
     .main-container {
       display: flex;
-      flex-direction: row;
-      gap: 20px;
-      justify-content: center;
-      align-items: flex-start;
+      flex-direction: column;
+      gap: 16px;
+      width: 100%;
+      max-width: 500px;
+      padding: 16px;
+      box-sizing: border-box;
     }
     .timer-container, .calendar-container {
       background-color: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       text-align: center;
-      width: 400px;
+      width: 100%;
+      box-sizing: border-box;
     }
     .time-box {
-      margin: 20px 0;
+      margin: 16px 0;
       display: flex;
       flex-direction: column;
       align-items: center;
     }
     .time-box .input-group {
       display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: center;
       width: 100%;
-      gap: 10px;
+      gap: 8px;
     }
     .time-box label {
-      font-size: 1.2em;
-      margin-bottom: 5px;
+      font-size: 1.1em;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #333;
     }
     .time-box select, .time-box input[type="time"], .calendar-container input, .calendar-container select, .calendar-container button {
-      padding: 5px;
+      padding: 10px;
       font-size: 1em;
-      width: 180px;
+      width: 100%;
+      max-width: 300px;
       border: 1px solid #ccc;
-      border-radius: 4px;
+      border-radius: 8px;
       box-sizing: border-box;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+    }
+    .time-box select, .calendar-container select {
+      background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12"><path fill="%23333" d="M6 9L2 5h8z"/></svg>') no-repeat right 10px center;
+      background-size: 12px;
     }
     .time-display {
-      font-size: 1.5em;
-      margin: 10px 0;
-      font-weight: bold;
+      font-size: 1.2em;
+      margin: 12px 0;
+      font-weight: 600;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 5px;
-    }
-    .minutes-until {
-      font-size: 1.2em;
+      gap: 6px;
       color: #333;
     }
+    .minutes-until {
+      font-size: 1em;
+      color: #555;
+      margin-top: 8px;
+    }
     .header {
-      font-size: 2em;
-      font-weight: bold;
-      margin-bottom: 20px;
+      font-size: 1.5em;
+      font-weight: 700;
+      margin: 16px 0;
       color: #333;
       text-align: center;
     }
@@ -79,45 +95,79 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 10px;
-      margin-bottom: 20px;
+      gap: 8px;
+      margin-bottom: 16px;
     }
     .calendar-container button {
       background-color: #4CAF50;
       color: white;
       border: none;
       cursor: pointer;
+      padding: 12px;
+      font-size: 1em;
+      border-radius: 8px;
+      width: 100%;
+      max-width: 300px;
+      transition: background-color 0.2s;
     }
-    .calendar-container button:hover {
+    .calendar-container button:active {
       background-color: #45a049;
     }
     .event-list {
       text-align: left;
-      margin-top: 20px;
-      font-size: 1em;
+      margin-top: 16px;
+      font-size: 0.9em;
+      max-height: 200px;
+      overflow-y: auto;
     }
     .event-list div {
       display: flex;
       align-items: center;
-      gap: 10px;
-      margin: 5px 0;
+      justify-content: space-between;
+      gap: 8px;
+      margin: 8px 0;
+      padding: 8px;
+      background-color: #f9f9f9;
+      border-radius: 6px;
     }
     .delete-button {
       background-color: #ff0000;
       color: white;
       border: none;
-      width: 24px;
-      height: 24px;
-      border-radius: 4px;
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
       cursor: pointer;
       font-size: 0.9em;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 0;
+      transition: background-color 0.2s;
     }
-    .delete-button:hover {
+    .delete-button:active {
       background-color: #cc0000;
+    }
+    @media (max-width: 600px) {
+      .main-container {
+        padding: 12px;
+      }
+      .header {
+        font-size: 1.3em;
+      }
+      .timer-container, .calendar-container {
+        padding: 12px;
+      }
+      .time-box select, .time-box input[type="time"], .calendar-container input, .calendar-container select, .calendar-container button {
+        font-size: 0.9em;
+        padding: 8px;
+      }
+      .time-display {
+        font-size: 1em;
+      }
+      .minutes-until {
+        font-size: 0.9em;
+      }
     }
   </style>
 </head>
