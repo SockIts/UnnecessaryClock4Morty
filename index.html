@@ -18,12 +18,13 @@
     }
     .main-container {
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       gap: 16px;
       width: 100%;
-      max-width: 500px;
+      max-width: 1000px;
       padding: 16px;
       box-sizing: border-box;
+      justify-content: center;
     }
     .timer-container, .calendar-container {
       background-color: white;
@@ -32,6 +33,7 @@
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       text-align: center;
       width: 100%;
+      max-width: 450px;
       box-sizing: border-box;
     }
     .time-box {
@@ -148,15 +150,18 @@
     .delete-button:active {
       background-color: #cc0000;
     }
-    @media (max-width: 600px) {
+    @media (max-width: 768px) {
       .main-container {
+        flex-direction: column;
         padding: 12px;
+        max-width: 500px;
       }
       .header {
         font-size: 1.3em;
       }
       .timer-container, .calendar-container {
         padding: 12px;
+        max-width: 100%;
       }
       .time-box select, .time-box input[type="time"], .calendar-container input, .calendar-container select, .calendar-container button {
         font-size: 0.9em;
