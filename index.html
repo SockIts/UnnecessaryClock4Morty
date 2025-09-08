@@ -115,32 +115,40 @@
     .calendar-container button:active {
       background-color: #45a049;
     }
+    .event-list-container {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin-top: 16px;
+    }
     .event-list {
       text-align: left;
-      margin-top: 16px;
       font-size: 0.9em;
       max-height: 200px;
       overflow-y: auto;
+      flex-grow: 1;
     }
     .event-list div {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
       margin: 8px 0;
       padding: 8px;
       background-color: #f9f9f9;
       border-radius: 6px;
     }
+    .delete-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      margin-top: 14px;
+    }
     .delete-button {
       background-color: #ff0000;
       color: white;
       border: none;
-      width: 28px;
-      height: 28px;
+      width: 18px;
+      height: 18px;
       border-radius: 6px;
       cursor: pointer;
-      font-size: 0.9em;
+      font-size: 0.7em;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -172,6 +180,16 @@
       }
       .minutes-until {
         font-size: 0.9em;
+      }
+      .event-list-container {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .delete-buttons {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-top: 4px;
       }
     }
   </style>
@@ -227,7 +245,10 @@
           </select>
           <button id="submit-event">Add Event</button>
         </div>
-        <div id="event-list" class="event-list"></div>
+        <div class="event-list-container">
+          <div id="event-list" class="event-list"></div>
+          <div id="delete-buttons" class="delete-buttons"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -339,9 +360,12 @@
 
     function updateEventList() {
       const eventList = document.getElementById('event-list');
-      eventList.innerHTML = events.map((event, index) => 
-        `<div>${event.name} - ${event.date} at ${event.time} (${event.timezone}) 
-           <button class="delete-button" onclick="deleteEvent(${index})">X</button></div>`
+      const deleteButtons = document.getElementById('delete-buttons');
+      eventList.innerHTML = events.map(event => 
+        `<div>${event.name} - ${event.date} at ${event.time} (${event.timezone})</div>`
+      ).join('');
+      deleteButtons.innerHTML = events.map((_, index) => 
+        `<button class="delete-button" onclick="deleteEvent(${index})">X</button>`
       ).join('');
     }
 
