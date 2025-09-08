@@ -191,6 +191,15 @@
             <option value="America/Los_Angeles" selected>Socks (PST)</option>
           </select>
           <input type="time" id="target-time-input" value="14:30">
+          <select id="target-day">
+            <option value="0">Sunday</option>
+            <option value="1">Monday</option>
+            <option value="2">Tuesday</option>
+            <option value="3" selected>Wednesday</option>
+            <option value="4">Thursday</option>
+            <option value="5">Friday</option>
+            <option value="6">Saturday</option>
+          </select>
         </div>
         <div id="target-time" class="time-display"></div>
       </div>
@@ -229,10 +238,11 @@
       { id: 'America/Los_Angeles', display: 'Socks (PST)' }
     ];
 
-    // Function to format time in 12-hour format with AM/PM
+    // Function to format time with day of the week
     function formatTime(date, timezone) {
-      return date.toLocaleTimeString('en-US', {
+      return date.toLocaleString('en-US', {
         timeZone: timezone,
+        weekday: 'long',
         hour: 'numeric',
         minute: '2-digit',
         hour12: true
@@ -243,7 +253,7 @@
     function calculateMinutesUntil(currentDate, targetDate) {
       const diffMs = targetDate - currentDate;
       const diffMins = Math.round(diffMs / 60000);
-      return diffMins >= 0 ? diffMins : diffMins + 1440;
+      return diffMins >= 0 ? diffMins : diffMins + (1440 * Math.ceil(-diffMins / 1440));
     }
 
     // Function to parse time input (HH:MM) to hours and minutes
@@ -252,10 +262,20 @@
       return { hours, minutes };
     }
 
+    // Function to get the next occurrence of a specific day of the week
+    function getNextDayOfWeek(currentDate, targetDay) {
+      const currentDay = currentDate.getDay();
+      const daysUntilTarget = (targetDay - currentDay + 7) % 7 || 7;
+      const targetDate = new Date(currentDate);
+      targetDate.setDate(currentDate.getDate() + daysUntilTarget);
+      return targetDate;
+    }
+
     // Function to update the time displays
     function updateTimes() {
       const targetTimezone = document.getElementById('target-timezone').value;
       const targetTimeInput = document.getElementById('target-time-input').value;
+      const targetDay = parseInt(document.getElementById('target-day').value);
 
       // Get current time for all timezones
       const now = new Date();
@@ -270,19 +290,16 @@
       const { hours, minutes } = parseTimeInput(targetTimeInput);
 
       // Set target time in selected timezone
-      const targetDate = new Date();
-      targetDate.setHours(hours, minutes, 0, 0);
-      const targetTime = formatTime(targetDate, targetTimezone);
+      const currentDateInTargetZone = new Date().toLocaleString('en-US', { timeZone: targetTimezone });
+      const currentDate = new Date(currentDateInTargetZone);
+      const targetDateAdjusted = getNextDayOfWeek(currentDate, targetDay);
+      targetDateAdjusted.setHours(hours, minutes, 0, 0);
+
+      // Format target time with day of the week
+      const targetTime = formatTime(targetDateAdjusted, targetTimezone);
       document.getElementById('target-time').textContent = targetTime;
 
       // Calculate minutes until target time
-      const currentDateInTargetZone = new Date().toLocaleString('en-US', { timeZone: targetTimezone });
-      const currentDate = new Date(currentDateInTargetZone);
-      const targetDateAdjusted = new Date(currentDate);
-      targetDateAdjusted.setHours(hours, minutes, 0, 0);
-      if (currentDate.getHours() > hours || (currentDate.getHours() === hours && currentDate.getMinutes() > minutes)) {
-        targetDateAdjusted.setDate(targetDateAdjusted.getDate() + 1);
-      }
       const minutesUntil = calculateMinutesUntil(currentDate, targetDateAdjusted);
       document.getElementById('minutes-until').textContent = `${minutesUntil} minutes until target time`;
     }
@@ -330,9 +347,10 @@
     updateTimes();
     setInterval(updateTimes, 1000);
 
-    // Update times when timezone or target time changes
+    // Update times when timezone, target time, or target day changes
     document.getElementById('target-timezone').addEventListener('change', updateTimes);
     document.getElementById('target-time-input').addEventListener('change', updateTimes);
+    document.getElementById('target-day').addEventListener('change', updateTimes);
 
     // Add event listener for event submission
     document.getElementById('submit-event').addEventListener('click', addEvent);
