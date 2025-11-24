@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Time Converter and Calendar</title>
+  <title>Multi-Timezone Clock & Calendar</title>
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -16,6 +16,13 @@
       font-size: 16px;
       -webkit-font-smoothing: antialiased;
     }
+    .header {
+      font-size: 1.5em;
+      font-weight: 700;
+      margin: 20px 0 10px;
+      color: #333;
+      text-align: center;
+    }
     .main-container {
       display: flex;
       flex-direction: row;
@@ -26,413 +33,323 @@
       box-sizing: border-box;
       justify-content: center;
     }
-    .timer-container, .calendar-container {
-      background-color: white;
-      padding: 16px;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      text-align: center;
+    .left-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
       width: 100%;
-      max-width: 450px;
+      max-width: 460px;
+      flex: 1;
+    }
+    .right-panel {
+      width: 100%;
+      max-width: 460px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .timer-container, .slider-container, .calendar-container {
+      background-color: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       box-sizing: border-box;
     }
-    .time-box {
-      margin: 16px 0;
+
+    /* Current Time */
+    .current-time-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #eee;
+      font-size: 1.05em;
+    }
+    .current-time-item:last-child { border-bottom: none; }
+    .current-time-label { font-weight: 600; color: #333; }
+    .current-time-value { font-weight: 500; color: #222; }
+
+    /* Interactive Slider - Centered */
+    .slider-container {
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
+      text-align: center;
     }
-    .time-box .input-group {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      width: 100%;
-      gap: 8px;
+    #time-slider {
+      width: 90%;
+      max-width: 380px;
+      height: 8px;
+      border-radius: 5px;
+      background: #ddd;
+      outline: none;
+      -webkit-appearance: none;
+      margin: 20px 0;
     }
-    .time-box label {
+    #time-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #2196f3;
+      cursor: pointer;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+    }
+    .slider-label { font-weight: 600; margin-bottom: 8px; color: #333; }
+    .slider-time-display { font-size: 1.9em; font-weight: bold; color: #2196f3; margin: 16px 0; }
+    .slider-comparison {
+      background: #f8f9fa;
+      padding: 16px;
+      border-radius: 10px;
+      line-height: 2;
+      font-size: 1.15em;
+      font-weight: 500;
+      border: 1px solid #e0e0e0;
+      width: 90%;
+      max-width: 380px;
+    }
+
+    /* Add Event Toggle */
+    .add-event-toggle {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 14px;
       font-size: 1.1em;
-      margin-bottom: 8px;
       font-weight: 600;
-      color: #333;
+      border-radius: 10px;
+      cursor: pointer;
+      width: 100%;
+      transition: background 0.2s;
     }
-    .time-box select, .time-box input[type="time"], .calendar-container input, .calendar-container select, .calendar-container button {
-      padding: 10px;
+    .add-event-toggle:hover { background: #45a049; }
+
+    .event-form {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      margin: 16px 0;
+      padding: 16px;
+      background: #f8f9fa;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+    }
+    .event-form.show { display: flex; }
+
+    select, input[type="date"], input[type="time"], input[type="text"] {
+      padding: 11px;
       font-size: 1em;
       width: 100%;
-      max-width: 300px;
       border: 1px solid #ccc;
       border-radius: 8px;
       box-sizing: border-box;
-      -webkit-appearance: none;
-      -moz-appearance: none;
-      appearance: none;
     }
-    .time-box select, .calendar-container select {
-      background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12"><path fill="%23333" d="M6 9L2 5h8z"/></svg>') no-repeat right 10px center;
+    select {
+      background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12"><path fill="%23333" d="M6 9L2 5h8z"/></svg>') no-repeat right 12px center;
       background-size: 12px;
+      -webkit-appearance: none;
     }
-    .time-display {
-      font-size: 1.2em;
+
+    /* Events List */
+    .event-item {
+      background: #f8f9fa;
+      border-radius: 10px;
+      padding: 14px;
       margin: 12px 0;
-      font-weight: 600;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
-      color: #333;
+      border-left: 5px solid #4CAF50;
+      position: relative;
     }
-    .minutes-until {
-      font-size: 1em;
-      color: #555;
-      margin-top: 8px;
-    }
-    .header {
-      font-size: 1.5em;
-      font-weight: 700;
-      margin: 16px 0;
-      color: #333;
-      text-align: center;
-    }
-    .calendar-container .input-group {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 16px;
-    }
-    .calendar-container button {
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      cursor: pointer;
-      padding: 12px;
-      font-size: 1em;
-      border-radius: 8px;
-      width: 100%;
-      max-width: 300px;
-      transition: background-color 0.2s;
-    }
-    .calendar-container button:active {
-      background-color: #45a049;
-    }
-    .event-list-container {
-      display: flex;
-      align-items: flex-start;
-      gap: 8px;
-      margin-top: 16px;
-    }
-    .event-list {
-      text-align: left;
-      font-size: 0.9em;
-      max-height: 200px;
-      overflow-y: auto;
-      flex-grow: 1;
-    }
-    .event-list div {
-      margin: 8px 0;
-      padding: 8px;
-      background-color: #f9f9f9;
-      border-radius: 6px;
-    }
-    .delete-buttons {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      margin-top: 14px;
-    }
+    .event-countdown { font-weight: bold; font-size: 1.1em; color: #d32f2f; margin-bottom: 8px; }
+    .event-name { font-weight: 600; font-size: 1.1em; margin-bottom: 6px; }
+    .event-details { font-size: 0.92em; color: #444; line-height: 1.5; }
     .delete-button {
-      background-color: #ff0000;
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #d32f2f;
       color: white;
       border: none;
-      width: 18px;
-      height: 18px;
-      border-radius: 6px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
       cursor: pointer;
-      font-size: 0.7em;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0;
-      transition: background-color 0.2s;
+      font-weight: bold;
     }
-    .delete-button:active {
-      background-color: #cc0000;
-    }
+
     @media (max-width: 768px) {
-      .main-container {
-        flex-direction: column;
-        padding: 12px;
-        max-width: 500px;
+      .main-container { 
+        flex-direction: column; 
+        padding: 12px; 
+        gap: 20px;
       }
-      .header {
-        font-size: 1.3em;
-      }
-      .timer-container, .calendar-container {
-        padding: 12px;
-        max-width: 100%;
-      }
-      .time-box select, .time-box input[type="time"], .calendar-container input, .calendar-container select, .calendar-container button {
-        font-size: 0.9em;
-        padding: 8px;
-      }
-      .time-display {
-        font-size: 1em;
-      }
-      .minutes-until {
-        font-size: 0.9em;
-      }
-      .event-list-container {
-        flex-direction: column;
-        align-items: stretch;
-      }
-      .delete-buttons {
-        flex-direction: row;
-        flex-wrap: wrap;
-        gap: 4px;
-        margin-top: 4px;
-      }
+      .left-panel, .right-panel { max-width: 100%; }
+      .calendar-container { min-height: auto; }
     }
   </style>
 </head>
 <body>
-  <div class="header">Minutes Countdown and Calendar for Morty</div>
+
+  <div class="header">Minutes Countdown & Calendar</div>
+
   <div class="main-container">
-    <div class="timer-container">
-      <div class="time-box">
-        <label for="current-time">Current Time:</label>
-        <div id="current-time" class="time-display"></div>
+    
+    <!-- Left: Current Time + Interactive Slider -->
+    <div class="left-panel">
+      <div class="timer-container">
+        <h3 style="margin:0 0 16px;text-align:center;color:#333;">Current Time (All Zones)</h3>
+        <div id="current-time"></div>
       </div>
-      <div class="time-box">
-        <label for="target-timezone">Target Time:</label>
-        <div class="input-group">
-          <select id="target-timezone">
-            <option value="Africa/Johannesburg">Morty (UTC+2)</option>
-            <option value="America/La_Paz">Derp (UTC-4)</option>
-            <option value="Europe/Moscow">John (UTC+3)</option>
-            <option value="America/Chicago">AZ (Central)</option>
-            <option value="America/Denver">HP (Mountain)</option>
-            <option value="America/Los_Angeles" selected>Socks (PST)</option>
-          </select>
-          <input type="time" id="target-time-input" value="14:30">
-          <select id="target-day">
-            <option value="0">Sunday</option>
-            <option value="1">Monday</option>
-            <option value="2">Tuesday</option>
-            <option value="3" selected>Wednesday</option>
-            <option value="4">Thursday</option>
-            <option value="5">Friday</option>
-            <option value="6">Saturday</option>
-          </select>
-        </div>
-        <div id="target-time" class="time-display"></div>
+
+      <div class="slider-container">
+        <h3 style="margin:0 0 16px;color:#333;">Interactive Time Comparison</h3>
+        <div class="slider-label">Drag to pick a time (30-min steps)</div>
+        <input type="range" min="0" max="47" value="24" step="1" id="time-slider">
+        <div class="slider-time-display" id="slider-time">12:00 PM</div>
+        <div class="slider-comparison" id="slider-comparison"></div>
       </div>
-      <div id="minutes-until" class="minutes-until"></div>
     </div>
-    <div class="calendar-container">
-      <div class="time-box">
-        <label for="calendar">Add Event:</label>
-        <div class="input-group">
+
+    <!-- Right: Events -->
+    <div class="right-panel">
+      <div class="calendar-container">
+        <h3 style="margin:0 0 16px;text-align:center;color:#333;">Events</h3>
+        
+        <button class="add-event-toggle" id="toggle-form">+ Add Event</button>
+        
+        <div class="event-form" id="event-form">
           <input type="text" id="event-name" placeholder="Event Name">
           <input type="date" id="event-date">
           <input type="time" id="event-time">
           <select id="event-timezone">
             <option value="Africa/Johannesburg">Morty (UTC+2)</option>
-            <option value="America/La_Paz">Derp (UTC-4)</option>
-            <option value="Europe/Moscow">John (UTC+3)</option>
             <option value="America/Chicago">AZ (Central)</option>
             <option value="America/Denver">HP (Mountain)</option>
             <option value="America/Los_Angeles" selected>Socks (PST)</option>
           </select>
-          <button id="submit-event">Add Event</button>
+          <button id="submit-event" style="background:#4CAF50;color:white;padding:12px;border-radius:8px;border:none;font-weight:600;cursor:pointer;">
+            Save Event
+          </button>
+          <button type="button" id="cancel-form" style="background:#999;color:white;padding:12px;border-radius:8px;border:none;cursor:pointer;">
+            Cancel
+          </button>
         </div>
-        <div class="event-list-container">
-          <div id="event-list" class="event-list"></div>
-          <div id="delete-buttons" class="delete-buttons"></div>
-        </div>
+
+        <div id="event-list" style="margin-top:20px;"></div>
       </div>
     </div>
   </div>
 
   <script>
-    // Available timezones
     const timezones = [
-      { id: 'Africa/Johannesburg', display: 'Morty (UTC+2)' },
-      { id: 'America/La_Paz', display: 'Derp (UTC-4)' },
-      { id: 'Europe/Moscow', display: 'John (UTC+3)' },
-      { id: 'America/Chicago', display: 'AZ (Central)' },
-      { id: 'America/Denver', display: 'HP (Mountain)' },
-      { id: 'America/Los_Angeles', display: 'Socks (PST)' }
+      { id: 'Africa/Johannesburg', name: 'Morty (UTC+2)' },
+      { id: 'America/Chicago',      name: 'AZ (Central)' },
+      { id: 'America/Denver',       name: 'HP (Mountain)' },
+      { id: 'America/Los_Angeles',  name: 'Socks (PST)' }
     ];
 
-    // Day map
-    const dayMap = {
-      'Sunday': 0,
-      'Monday': 1,
-      'Tuesday': 2,
-      'Wednesday': 3,
-      'Thursday': 4,
-      'Friday': 5,
-      'Saturday': 6
-    };
+    let events = [];
+    try {
+      const stored = localStorage.getItem('events_final');
+      if (stored) events = JSON.parse(stored).filter(e => e && e.name && e.date && e.time && e.timezoneId);
+    } catch(e) { localStorage.removeItem('events_final'); }
 
-    // Function to get date parts
-    function formatDateParts(date, timezone) {
-      const formatter = new Intl.DateTimeFormat('en-US', {
-        timeZone: timezone,
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false
-      });
-      const parts = formatter.formatToParts(date);
-      const map = {};
-      parts.forEach(p => {
-        if (p.type !== 'literal') map[p.type] = p.value;
-      });
-      return map;
-    }
+    const baseDate = new Date(); baseDate.setHours(0,0,0,0);
 
-    // Function to get timezone offset in minutes
-    function getTimezoneOffset(timezone, dateUTC = new Date()) {
-      const utcParts = formatDateParts(dateUTC, 'UTC');
-      const tzParts = formatDateParts(dateUTC, timezone);
-      const utcMs = Date.UTC(utcParts.year, utcParts.month - 1, utcParts.day, utcParts.hour, utcParts.minute, utcParts.second);
-      const tzMs = Date.UTC(tzParts.year, tzParts.month - 1, tzParts.day, tzParts.hour, tzParts.minute, tzParts.second);
-      return (tzMs - utcMs) / 60000;
-    }
-
-    // Function to format time with day of the week
-    function formatTime(date, timezone) {
-      return date.toLocaleString('en-US', {
-        timeZone: timezone,
-        weekday: 'long',
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
-      });
-    }
-
-    // Function to parse time input (HH:MM) to hours and minutes
-    function parseTimeInput(timeString) {
-      const [hours, minutes] = timeString.split(':').map(Number);
-      return { hours, minutes };
-    }
-
-    // Function to update the time displays
-    function updateTimes() {
-      const targetTimezone = document.getElementById('target-timezone').value;
-      const targetTimeInput = document.getElementById('target-time-input').value;
-      const targetDay = parseInt(document.getElementById('target-day').value);
-
-      // Get current time for all timezones
+    function updateCurrentTimes() {
       const now = new Date();
-      const currentTimeDisplay = timezones.map(timezone => {
-        const time = formatTime(now, timezone.id);
-        return `<div>${timezone.display}: ${time}</div>`;
+      document.getElementById('current-time').innerHTML = timezones.map(tz => {
+        const formatted = now.toLocaleString('en-US', {
+          timeZone: tz.id,
+          weekday: 'short', month: 'short', day: 'numeric', year: 'numeric',
+          hour: 'numeric', minute: '2-digit', hour12: true
+        });
+        return `<div class="current-time-item">
+          <span class="current-time-label">${tz.name}</span>
+          <span class="current-time-value">${formatted}</span>
+        </div>`;
       }).join('');
-      document.getElementById('current-time').textContent = '';
-      document.getElementById('current-time').innerHTML = currentTimeDisplay;
-
-      // Parse target time input
-      const { hours, minutes } = parseTimeInput(targetTimeInput);
-
-      // Get current parts and weekday in target timezone
-      const currentParts = formatDateParts(now, targetTimezone);
-      const currentWeekdayName = new Intl.DateTimeFormat('en-US', { timeZone: targetTimezone, weekday: 'long' }).format(now);
-      const currentDay = dayMap[currentWeekdayName];
-
-      // Calculate days until target
-      let daysUntilTarget = (targetDay - currentDay + 7) % 7;
-      const currentHour = parseInt(currentParts.hour);
-      const currentMinute = parseInt(currentParts.minute);
-      if (daysUntilTarget === 0 && (currentHour > hours || (currentHour === hours && currentMinute >= minutes))) {
-        daysUntilTarget = 7;
-      }
-
-      // Get approximate offset
-      const approxOffset = getTimezoneOffset(targetTimezone, now);
-
-      // Calculate target fake ms (local parts as UTC)
-      const currentYear = parseInt(currentParts.year);
-      const currentMonth = parseInt(currentParts.month);
-      const currentDayOfMonth = parseInt(currentParts.day);
-      const targetFakeMs = Date.UTC(currentYear, currentMonth - 1, currentDayOfMonth + daysUntilTarget, hours, minutes, 0);
-
-      // Approximate target UTC
-      const approxTargetUTCms = targetFakeMs - approxOffset * 60000;
-
-      // Get exact offset at approximate target
-      const exactOffset = getTimezoneOffset(targetTimezone, new Date(approxTargetUTCms));
-
-      // Final target UTC ms
-      const targetUTCms = targetFakeMs - exactOffset * 60000;
-      const targetDate = new Date(targetUTCms);
-
-      // Format target time with day of the week
-      const targetTime = formatTime(targetDate, targetTimezone);
-      document.getElementById('target-time').textContent = targetTime;
-
-      // Calculate minutes until target time
-      const minutesUntil = Math.round((targetUTCms - now.getTime()) / 60000);
-      document.getElementById('minutes-until').textContent = `${minutesUntil} minutes until target time`;
     }
 
-    // Event handling for calendar
-    let events = JSON.parse(localStorage.getItem('events')) || [];
+    function updateSlider() {
+      const step = parseInt(document.getElementById('time-slider').value) || 24;
+      const totalMins = step * 30;
+      const hrs = Math.floor(totalMins / 60);
+      const mins = totalMins % 60;
+      const ampm = hrs < 12 ? 'AM' : 'PM';
+      const displayHr = hrs === 0 ? 12 : hrs > 12 ? hrs - 12 : hrs;
+      document.getElementById('slider-time').textContent = `${displayHr}:${mins === 0 ? '00' : '30'} ${ampm}`;
+
+      const selected = new Date(baseDate);
+      selected.setHours(hrs, mins);
+
+      document.getElementById('slider-comparison').innerHTML = timezones.map(tz => {
+        const time = selected.toLocaleTimeString('en-US', { timeZone: tz.id, hour: 'numeric', minute: '2-digit', hour12: true });
+        return `<strong>${tz.name}:</strong> ${time}`;
+      }).join('<br>');
+    }
+
+    function renderEvents() {
+      const el = document.getElementById('event-list');
+      if (!events.length) {
+        el.innerHTML = '<p style="text-align:center;color:#999;margin-top:20px;">No events yet</p>';
+        return;
+      }
+      el.innerHTML = events.map((ev, i) => {
+        if (!ev || !ev.date || !ev.time) return '';
+        let ed;
+        try {
+          const [y,m,d] = ev.date.split('-').map(Number);
+          const [h,min] = ev.time.split(':').map(Number);
+          ed = new Date(y, m-1, d, h, min);
+        } catch { return ''; }
+        const diff = Math.round((ed - new Date()) / 60000);
+        const countdown = diff > 0 ? `${diff} min until start` : diff < 0 ? `${-diff} min ago` : 'Happening NOW!';
+        const all = timezones.map(tz => `<strong>${tz.name}:</strong> ${ed.toLocaleString('en-US', { timeZone: tz.id, weekday: 'long', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}`).join('<br>');
+        return `<div class="event-item">
+          <button class="delete-button" onclick="deleteEvent(${i})">X</button>
+          <div class="event-countdown">${countdown}</div>
+          <div class="event-name">${ev.name}</div>
+          <div class="event-details">Original: ${ev.date} at ${ev.time} (${ev.timezone})<br><br><strong>All timezones:</strong><br>${all}</div>
+        </div>`;
+      }).filter(Boolean).join('');
+    }
 
     function addEvent() {
-      const eventName = document.getElementById('event-name').value;
-      const eventDate = document.getElementById('event-date').value;
-      const eventTime = document.getElementById('event-time').value;
-      const eventTimezone = document.getElementById('event-timezone').value;
+      const name = document.getElementById('event-name').value.trim();
+      const date = document.getElementById('event-date').value;
+      const time = document.getElementById('event-time').value;
+      const tzId = document.getElementById('event-timezone').value;
+      if (!name || !date || !time) return alert('Please fill all fields');
+      const tzName = timezones.find(t => t.id === tzId)?.name || tzId;
+      events.push({ name, date, time, timezone: tzName, timezoneId: tzId });
+      localStorage.setItem('events_final', JSON.stringify(events));
+      document.getElementById('event-form').classList.remove('show');
+      document.getElementById('event-name').value = '';
+      renderEvents();
+    }
 
-      if (eventName && eventDate && eventTime && eventTimezone) {
-        const timezoneDisplay = timezones.find(tz => tz.id === eventTimezone).display;
-        events.push({ name: eventName, date: eventDate, time: eventTime, timezone: timezoneDisplay });
-        localStorage.setItem('events', JSON.stringify(events));
-        document.getElementById('event-name').value = '';
-        document.getElementById('event-date').value = '';
-        document.getElementById('event-time').value = '';
-        updateEventList();
-      } else {
-        alert('Please fill in all event fields.');
+    window.deleteEvent = i => { events.splice(i,1); localStorage.setItem('events_final', JSON.stringify(events)); renderEvents(); };
+
+    // Toggle form
+    document.getElementById('toggle-form').addEventListener('click', () => {
+      const form = document.getElementById('event-form');
+      form.classList.toggle('show');
+      if (form.classList.contains('show')) {
+        document.getElementById('event-date').valueAsDate = new Date();
       }
-    }
-
-    function deleteEvent(index) {
-      events.splice(index, 1);
-      localStorage.setItem('events', JSON.stringify(events));
-      updateEventList();
-    }
-
-    function updateEventList() {
-      const eventList = document.getElementById('event-list');
-      const deleteButtons = document.getElementById('delete-buttons');
-      eventList.innerHTML = events.map(event => 
-        `<div>${event.name} - ${event.date} at ${event.time} (${event.timezone})</div>`
-      ).join('');
-      deleteButtons.innerHTML = events.map((_, index) => 
-        `<button class="delete-button" onclick="deleteEvent(${index})">X</button>`
-      ).join('');
-    }
-
-    // Initialize event list on page load
-    updateEventList();
-
-    // Update times initially and every second
-    updateTimes();
-    setInterval(updateTimes, 1000);
-
-    // Update times when timezone, target time, or target day changes
-    document.getElementById('target-timezone').addEventListener('change', updateTimes);
-    document.getElementById('target-time-input').addEventListener('change', updateTimes);
-    document.getElementById('target-day').addEventListener('change', updateTimes);
-
-    // Add event listener for event submission
+    });
+    document.getElementById('cancel-form').addEventListener('click', () => {
+      document.getElementById('event-form').classList.remove('show');
+    });
     document.getElementById('submit-event').addEventListener('click', addEvent);
+    document.getElementById('time-slider').addEventListener('input', updateSlider);
+
+    // Init
+    updateSlider();
+    updateCurrentTimes();
+    renderEvents();
+    setInterval(() => { updateCurrentTimes(); renderEvents(); }, 1000);
   </script>
 </body>
 </html>
