@@ -5,202 +5,48 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Multi-Timezone Clock & Calendar</title>
   <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
-      background-color: #f0f0f0;
-      font-size: 14px;
-      -webkit-font-smoothing: antialiased;
-    }
-    .header {
-      font-size: 1.5em;
-      font-weight: 700;
-      margin: 20px 0 10px;
-      color: #333;
-      text-align: center;
-    }
-    .main-container {
-      display: flex;
-      flex-direction: row;
-      gap: 16px;
-      width: 100%;
-      max-width: 1000px;
-      padding: 16px;
-      box-sizing: border-box;
-      justify-content: center;
-    }
-    .left-panel {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      width: 100%;
-      max-width: 460px;
-      flex: 1;
-    }
-    .right-panel {
-      width: 100%;
-      max-width: 460px;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-    .timer-container, .slider-container, .calendar-container {
-      background-color: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      box-sizing: border-box;
-    }
-
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; background-color: #f0f0f0; font-size: 14px; -webkit-font-smoothing: antialiased; }
+    .header { font-size: 1.5em; font-weight: 700; margin: 20px 0 10px; color: #333; text-align: center; }
+    .main-container { display: flex; flex-direction: row; gap: 16px; width: 100%; max-width: 1000px; padding: 16px; box-sizing: border-box; justify-content: center; }
+    .left-panel { display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 460px; flex: 1; }
+    .right-panel { width: 100%; max-width: 460px; flex: 1; display: flex; flex-direction: column; gap: 16px; }
+    .timer-container, .slider-container, .calendar-container { background-color: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); box-sizing: border-box; }
     /* Current Time */
-    .current-time-item {
-      display: flex;
-      justify-content: space-between;
-      padding: 10px 0;
-      border-bottom: 1px solid #eee;
-      font-size: 1.05em;
-    }
+    .current-time-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 1.05em; }
     .current-time-item:last-child { border-bottom: none; }
     .current-time-label { font-weight: 600; color: #333; }
     .current-time-value { font-weight: 500; color: #222; }
-
-    /* Interactive Slider - Centered */
-    .slider-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-    }
-    #time-slider {
-      width: 90%;
-      max-width: 380px;
-      height: 8px;
-      border-radius: 5px;
-      background: #ddd;
-      outline: none;
-      -webkit-appearance: none;
-      margin: 20px 0;
-    }
-    #time-slider::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      background: #2196f3;
-      cursor: pointer;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.3);
-    }
+    /* Interactive Slider */
+    .slider-container { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+    #time-slider { width: 90%; max-width: 380px; height: 8px; border-radius: 5px; background: #ddd; outline: none; -webkit-appearance: none; margin: 20px 0; }
+    #time-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 28px; height: 28px; border-radius: 50%; background: #2196f3; cursor: pointer; box-shadow: 0 3px 10px rgba(0,0,0,0.3); }
     .slider-label { font-weight: 600; margin-bottom: 8px; color: #333; }
     .slider-time-display { font-size: 1.9em; font-weight: bold; color: #2196f3; margin: 16px 0; }
-    .slider-comparison {
-      background: #f8f9fa;
-      padding: 16px;
-      border-radius: 10px;
-      line-height: 2;
-      font-size: 1em;
-      font-weight: 500;
-      border: 1px solid #e0e0e0;
-      width: 90%;
-      max-width: 380px;
-    }
-
+    .slider-comparison { background: #f8f9fa; padding: 16px; border-radius: 10px; line-height: 2; font-size: 1em; font-weight: 500; border: 1px solid #e0e0e0; width: 90%; max-width: 380px; }
     /* Add Event Toggle */
-    .add-event-toggle {
-      background: #4CAF50;
-      color: white;
-      border: none;
-      padding: 14px;
-      font-size: 1em;
-      font-weight: 600;
-      border-radius: 10px;
-      cursor: pointer;
-      width: 100%;
-      transition: background 0.2s;
-    }
+    .add-event-toggle { background: #4CAF50; color: white; border: none; padding: 14px; font-size: 1em; font-weight: 600; border-radius: 10px; cursor: pointer; width: 100%; transition: background 0.2s; }
     .add-event-toggle:hover { background: #45a049; }
-
-    .event-form {
-      display: none;
-      flex-direction: column;
-      gap: 10px;
-      margin: 16px 0;
-      padding: 16px;
-      background: #f8f9fa;
-      border-radius: 10px;
-      border: 1px solid #ddd;
-    }
+    .event-form { display: none; flex-direction: column; gap: 10px; margin: 16px 0; padding: 16px; background: #f8f9fa; border-radius: 10px; border: 1px solid #ddd; }
     .event-form.show { display: flex; }
-
-    select, input[type="date"], input[type="time"], input[type="text"] {
-      padding: 11px;
-      font-size: 1em;
-      width: 100%;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      box-sizing: border-box;
-    }
-    select {
-      background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12"><path fill="%23333" d="M6 9L2 5h8z"/></svg>') no-repeat right 12px center;
-      background-size: 12px;
-      -webkit-appearance: none;
-    }
-
+    select, input[type="date"], input[type="time"], input[type="text"] { padding: 11px; font-size: 1em; width: 100%; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
+    select { background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12"><path fill="%23333" d="M6 9L2 5h8z"/></svg>') no-repeat right 12px center; background-size: 12px; -webkit-appearance: none; }
     /* Events List */
-    .event-item {
-      background: #f8f9fa;
-      border-radius: 10px;
-      padding: 14px;
-      margin: 12px 0;
-      border-left: 5px solid #4CAF50;
-      position: relative;
-    }
+    .event-item { background: #f8f9fa; border-radius: 10px; padding: 14px; margin: 12px 0; border-left: 5px solid #4CAF50; position: relative; }
     .event-countdown { font-weight: bold; font-size: 1.1em; color: #d32f2f; margin-bottom: 8px; }
     .event-name { font-weight: 600; font-size: 1.1em; margin-bottom: 6px; }
     .event-details { font-size: 0.92em; color: #444; line-height: 1.5; }
-    .delete-button {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: #d32f2f;
-      color: white;
-      border: none;
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    @media (max-width: 768px) {
-      .main-container { 
-        flex-direction: column; 
-        padding: 12px; 
-        gap: 20px;
-      }
-      .left-panel, .right-panel { max-width: 100%; }
-      .calendar-container { min-height: auto; }
-    }
+    .delete-button { position: absolute; top: 10px; right: 10px; background: #d32f2f; color: white; border: none; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-weight: bold; }
+    @media (max-width: 768px) { .main-container { flex-direction: column; padding: 12px; gap: 20px; } .left-panel, .right-panel { max-width: 100%; } }
   </style>
 </head>
 <body>
-
   <div class="header">Minutes Countdown & Calendar</div>
-
   <div class="main-container">
-    
-    <!-- Left: Current Time + Interactive Slider -->
     <div class="left-panel">
       <div class="timer-container">
         <h3 style="margin:0 0 16px;text-align:center;color:#333;">Current Time (All Zones)</h3>
         <div id="current-time"></div>
       </div>
-
       <div class="slider-container">
         <h3 style="margin:0 0 16px;color:#333;">Interactive Time Comparison</h3>
         <div class="slider-label">Drag to pick a time (30-min steps)</div>
@@ -209,14 +55,10 @@
         <div class="slider-comparison" id="slider-comparison"></div>
       </div>
     </div>
-
-    <!-- Right: Events -->
     <div class="right-panel">
       <div class="calendar-container">
         <h3 style="margin:0 0 16px;text-align:center;color:#333;">Events</h3>
-        
         <button class="add-event-toggle" id="toggle-form">+ Add Event</button>
-        
         <div class="event-form" id="event-form">
           <input type="text" id="event-name" placeholder="Event Name">
           <input type="date" id="event-date">
@@ -227,34 +69,48 @@
             <option value="America/Denver">HP (Mountain)</option>
             <option value="America/Los_Angeles" selected>Socks (PST)</option>
           </select>
-          <button id="submit-event" style="background:#4CAF50;color:white;padding:12px;border-radius:8px;border:none;font-weight:600;cursor:pointer;">
-            Save Event
-          </button>
-          <button type="button" id="cancel-form" style="background:#999;color:white;padding:12px;border-radius:8px;border:none;cursor:pointer;">
-            Cancel
-          </button>
+          <button id="submit-event">Save Event</button>
+          <button type="button" id="cancel-form">Cancel</button>
         </div>
-
         <div id="event-list" style="margin-top:20px;"></div>
       </div>
     </div>
   </div>
 
-  <script>
+  <!-- Firebase SDKs (modular v9+ style) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, onValue, push, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    // Your Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyCTXT46OZKsskx6CwpPiVzCiH-l3jSmOqY",
+      authDomain: "unnecessaryclock4morty.firebaseapp.com",
+      databaseURL: "https://unnecessaryclock4morty-default-rtdb.firebaseio.com",
+      projectId: "unnecessaryclock4morty",
+      storageBucket: "unnecessaryclock4morty.appspot.com",
+      messagingSenderId: "186405906702",
+      appId: "1:186405906702:web:b83abcb3cd3e3440768f5f",
+      measurementId: "G-XEWKNH3EYJ"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const eventsRef = ref(db, 'events');
+
     const timezones = [
       { id: 'Africa/Johannesburg', name: 'Morty (UTC+2)' },
-      { id: 'America/Chicago',      name: 'AZ (Central)' },
-      { id: 'America/Denver',       name: 'HP (Mountain)' },
-      { id: 'America/Los_Angeles',  name: 'Socks (PST)' }
+      { id: 'America/Chicago', name: 'AZ (Central)' },
+      { id: 'America/Denver', name: 'HP (Mountain)' },
+      { id: 'America/Los_Angeles', name: 'Socks (PST)' }
     ];
 
     let events = [];
-    try {
-      const stored = localStorage.getItem('events_final');
-      if (stored) events = JSON.parse(stored).filter(e => e && e.name && e.date && e.time && e.timezoneId);
-    } catch(e) { localStorage.removeItem('events_final'); }
+    let eventsWithKeys = {}; // To store Firebase keys for deletion
 
-    const baseDate = new Date(); baseDate.setHours(0,0,0,0);
+    const baseDate = new Date();
+    baseDate.setHours(0, 0, 0, 0);
 
     function updateCurrentTimes() {
       const now = new Date();
@@ -284,7 +140,10 @@
       selected.setHours(hrs, mins);
 
       document.getElementById('slider-comparison').innerHTML = timezones.map(tz => {
-        const time = selected.toLocaleTimeString('en-US', { timeZone: tz.id, hour: 'numeric', minute: '2-digit', hour12: true });
+        const time = selected.toLocaleTimeString('en-US', {
+          timeZone: tz.id,
+          hour: 'numeric', minute: '2-digit', hour12: true
+        });
         return `<strong>${tz.name}:</strong> ${time}`;
       }).join('<br>');
     }
@@ -295,43 +154,97 @@
         el.innerHTML = '<p style="text-align:center;color:#999;margin-top:20px;">No events yet</p>';
         return;
       }
+
       el.innerHTML = events.map((ev, i) => {
         if (!ev || !ev.date || !ev.time) return '';
+
         let ed;
         try {
-          const [y,m,d] = ev.date.split('-').map(Number);
-          const [h,min] = ev.time.split(':').map(Number);
-          ed = new Date(y, m-1, d, h, min);
-        } catch { return ''; }
+          const [y, m, d] = ev.date.split('-').map(Number);
+          const [h, min] = ev.time.split(':').map(Number);
+          ed = new Date(y, m - 1, d, h, min);
+        } catch {
+          return '';
+        }
+
         const diff = Math.round((ed - new Date()) / 60000);
-        const countdown = diff > 0 ? `${diff} min until start` : diff < 0 ? `${-diff} min ago` : 'Happening NOW!';
-        const all = timezones.map(tz => `<strong>${tz.name}:</strong> ${ed.toLocaleString('en-US', { timeZone: tz.id, weekday: 'long', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}`).join('<br>');
+        const countdown = diff > 0 ? `${diff} min until start`
+          : diff < 0 ? `${-diff} min ago`
+          : 'Happening NOW!';
+
+        const all = timezones.map(tz => {
+          return `<strong>${tz.name}:</strong> ${ed.toLocaleString('en-US', {
+            timeZone: tz.id,
+            weekday: 'long', month: 'short', day: 'numeric', year: 'numeric',
+            hour: 'numeric', minute: '2-digit', hour12: true
+          })}`;
+        }).join('<br>');
+
+        const key = Object.keys(eventsWithKeys)[i]; // Get Firebase key for this event
+
         return `<div class="event-item">
-          <button class="delete-button" onclick="deleteEvent(${i})">X</button>
+          <button class="delete-button" data-key="${key}">X</button>
           <div class="event-countdown">${countdown}</div>
           <div class="event-name">${ev.name}</div>
-          <div class="event-details">Original: ${ev.date} at ${ev.time} (${ev.timezone})<br><br><strong>All timezones:</strong><br>${all}</div>
+          <div class="event-details">
+            Original: ${ev.date} at ${ev.time} (${ev.timezone})<br><br>
+            <strong>All timezones:</strong><br>${all}
+          </div>
         </div>`;
       }).filter(Boolean).join('');
     }
+
+    // Listen for real-time updates from Firebase
+    onValue(eventsRef, (snapshot) => {
+      events = [];
+      eventsWithKeys = snapshot.val() || {};
+      Object.values(eventsWithKeys).forEach(ev => {
+        if (ev && ev.name && ev.date && ev.time && ev.timezoneId) {
+          events.push(ev);
+        }
+      });
+      renderEvents();
+    });
 
     function addEvent() {
       const name = document.getElementById('event-name').value.trim();
       const date = document.getElementById('event-date').value;
       const time = document.getElementById('event-time').value;
       const tzId = document.getElementById('event-timezone').value;
-      if (!name || !date || !time) return alert('Please fill all fields');
+
+      if (!name || !date || !time) {
+        alert('Please fill all fields');
+        return;
+      }
+
       const tzName = timezones.find(t => t.id === tzId)?.name || tzId;
-      events.push({ name, date, time, timezone: tzName, timezoneId: tzId });
-      localStorage.setItem('events_final', JSON.stringify(events));
-      document.getElementById('event-form').classList.remove('show');
+
+      const newEvent = {
+        name,
+        date,
+        time,
+        timezone: tzName,
+        timezoneId: tzId
+      };
+
+      push(eventsRef, newEvent); // Adds to Firebase with unique key
+
+      // Clear and hide form
       document.getElementById('event-name').value = '';
-      renderEvents();
+      document.getElementById('event-form').classList.remove('show');
     }
 
-    window.deleteEvent = i => { events.splice(i,1); localStorage.setItem('events_final', JSON.stringify(events)); renderEvents(); };
+    // Delete event using Firebase key
+    document.getElementById('event-list').addEventListener('click', (e) => {
+      if (e.target.classList.contains('delete-button')) {
+        const key = e.target.getAttribute('data-key');
+        if (key) {
+          remove(ref(db, 'events/' + key));
+        }
+      }
+    });
 
-    // Toggle form
+    // Form controls
     document.getElementById('toggle-form').addEventListener('click', () => {
       const form = document.getElementById('event-form');
       form.classList.toggle('show');
@@ -339,17 +252,23 @@
         document.getElementById('event-date').valueAsDate = new Date();
       }
     });
+
     document.getElementById('cancel-form').addEventListener('click', () => {
       document.getElementById('event-form').classList.remove('show');
     });
+
     document.getElementById('submit-event').addEventListener('click', addEvent);
     document.getElementById('time-slider').addEventListener('input', updateSlider);
 
-    // Init
+    // Initial setup
     updateSlider();
     updateCurrentTimes();
     renderEvents();
-    setInterval(() => { updateCurrentTimes(); renderEvents(); }, 1000);
+
+    setInterval(() => {
+      updateCurrentTimes();
+      renderEvents();
+    }, 1000);
   </script>
 </body>
 </html>
